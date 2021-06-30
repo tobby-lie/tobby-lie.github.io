@@ -31,7 +31,45 @@
 			<div class="inner">
 				<h1 class="major">Cap Attack: A Mushroom Edibility Classifier</h1>
 				<span class="image fit"><img src="images/capattack_site.PNG" alt="" /></span>
-				<p>Text Goes here
+				<p>Curious to know how a neural network model transitions from development/experimentation to
+					production, I spent a few weekends working on a personal project exploring this. The end product is
+					a trained neural network deployed to a web service which classifies mushroom edibility. I pulled
+					a mushroom edibility classification dataset from Kaggle and developed a neural network model in
+					Tensorflow which was trained and evaluated on the previously mentioned dataset.
+
+					The model was a simple fully connected neural network with 3 hidden layers. The classification task
+					was binary classification for 'edible' or 'poisonous'.
+
+					After successfully achieving an accuracy of 95% for the trained model, I saved it's model weights
+					for later usage for inference. I then created a predict api via Flask which downloads the trained
+					model, provides input from a user, and returns a prediction. I utilized Dash to implement a simple
+					front end interface for a user to input attributes about a specific mushroom they were curious
+					about. Upon submission of this user input, they would receive back a classification result,
+					indicating if the mushroom they input was edible or not.
+
+					After this, I created separate Docker containers for the various components of my app. I then
+					utilized Docker compose in order to orchestrate the various Docker containers to serve their
+					individual purposes.
+
+					I then created an AWS EC2 instance to host my project. The entier project, incluing the Docker files
+					were cloned from Github to this instance and the containers were started. My app was now accessible
+					online and was at this point deployed. I then created a unique domain name to better identify the
+					project
+					online.
+
+					The model utilized in this project was simple and the task it was used for was simply binary
+					classification but it was not the focus of this project. I wanted to learn about what it takes to
+					take a model to production and that is what I did.
+
+					There are many improvements I could make to this project going forward. Here are a few thoughts
+					about improvement. I could use an ML lifecycle management tool such as MLFlow to better keep track
+					of my model trainings and develop a model registry to track production ready models in a repository.
+					Doing this would provide a better model storage solution as well as a solution for model versioning
+					and tracking. I could use a CI/CD tool such as Github Actions in order to automate the continuous
+					integration and continous delivery/deployment of my codebase. I could utilize Kubernetes in order to
+					have a cluster of containers running rather than a single instance, this would help with load
+					balancing in high traffic situations. I could scale up my data and utilize a managed database
+					service in order to have a better solution for data management.
 				</p>
 				<ul class="actions">
 					<li><a href="https://capattack.net/" class="button primary fit">Check out the website here</a></li>
