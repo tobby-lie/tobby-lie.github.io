@@ -1,0 +1,15 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# Dioxus specific
+/dist/
+/.dx/
+
+# Environment variables
+.env
+.env.local
+
+# Build outputs
+/build/
+/out/
