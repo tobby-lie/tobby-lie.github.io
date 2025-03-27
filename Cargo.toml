@@ -6,30 +6,26 @@ edition = "2021"
 
 [dependencies]
 ammonia = "3.3.0"
-dioxus = { version = "0.6.0", features = [] }
+dioxus = { version = "0.6.0", features = ["web"] }
+dioxus-web = "0.6.0"
 dioxus-router = "0.6.0"
 log = "0.4.6"
 pulldown-cmark = "0.9"
 wasm-logger = "0.2.0"
 
-[features]
-default = ["web"]
-web = ["dioxus/web"]
-desktop = ["dioxus/desktop"]
-mobile = ["dioxus/mobile"]
-
-[profile.dev]
-opt-level = 1
-
-[profile.release]
-opt-level = 3
-
 [profile.wasm-dev]
 inherits = "dev"
 opt-level = 1
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "s"
+codegen-units = 1
+lto = true
 
 [profile.server-dev]
 inherits = "dev"
 
 [profile.android-dev]
 inherits = "dev"
+
