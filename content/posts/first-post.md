@@ -3,18 +3,13 @@ title = "My First Post"
 date = 2025-03-30
 +++
 
-This is my first blog post. Welcome to my security engineering blog!
+This is my first blog post. Welcome to my blog!
 
 ## Introduction
 
-Here I'll be sharing my thoughts, research, and findings on various security topics.
+TODO: Write about writing Zola site
 
-## Topics I'll Cover
-
-- Web application security
-- API security testing
-- Vulnerability research
-- Secure coding practices
+## Test code block
 
 ```python
 def hello():
