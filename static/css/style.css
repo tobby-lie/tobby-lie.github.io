@@ -42,6 +42,8 @@ a:hover {
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 1rem;
+  padding-top: 20px;
+  margin-top: 15px
 }
 
 .logo a {
