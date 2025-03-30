@@ -1,0 +1,25 @@
+# Zola output directory
+public/
+
+# Zola cache
+.zola/
+
+# IDE/Editor files
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.*
+
+# Log files
+*.log
+
+# If you use Sass cache
+.sass-cache/
+
+# Rust build artifacts
+target/
+**/*.rs.bk
+Cargo.lock
