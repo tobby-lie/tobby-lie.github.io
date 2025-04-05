@@ -1,0 +1,19 @@
+name: Site CD
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build and deploy
+        uses: shalzz/zola-deploy-action@master
+        env:
+          PAGES_BRANCH: gh-pages
+          GITHUB_TOKEN: ${{ secrets.site-cicd }}
+          BUILD_DIR: .
+          BUILD_FLAGS: --base-url="https://tobbylie.me"
