@@ -13,6 +13,6 @@ jobs:
         uses: shalzz/zola-deploy-action@master
         env:
           BUILD_DIR: .
-          BUIL_ONLY: true
+          BUILD_ONLY: true
           BUILD_FLAGS: --base-url="https://tobbylie.me"
-
+          GITHUB_TOKEN: ${{ secrets.site-cicd }}
