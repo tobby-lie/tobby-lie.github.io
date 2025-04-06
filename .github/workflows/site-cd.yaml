@@ -1,6 +1,5 @@
 name: Site CD
 
-
 on:
   push:
     branches: [ master ]
