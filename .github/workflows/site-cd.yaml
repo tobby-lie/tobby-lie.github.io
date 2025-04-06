@@ -15,6 +15,6 @@ jobs:
         uses: shalzz/zola-deploy-action@master
         env:
           PAGES_BRANCH: gh-pages
-          GITHUB_TOKEN: ${{ secrets.site-cd }}
+          GITHUB_TOKEN: ${{ secrets.site_cd }}
           BUILD_DIR: .
           BUILD_FLAGS: --base-url="https://tobbylie.me"
