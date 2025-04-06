@@ -17,3 +17,4 @@ jobs:
           PAGES_BRANCH: gh-pages
           GITHUB_TOKEN: ${{ secrets.site_cd }}
           BUILD_DIR: .
+          BUILD_FLAGS: --base-url="https://tobbylie.me"
