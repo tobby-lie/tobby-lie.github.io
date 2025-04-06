@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ config.title }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ get_url(path='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="site-header">
+                <div class="logo">
+                    <a href="{{ config.base_url }}">{{ config.title }}</a>
+                </div>
+                <nav>
+                    <a href="{{ config.base_url }}">Home</a>
+                    <a href="{{ get_url(path='about') }}">About</a>
+                    {% if config.extra.github %}
+                        <a href="{{ config.extra.github }}">GitHub</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </header>
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>
