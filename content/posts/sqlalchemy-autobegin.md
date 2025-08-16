@@ -1,13 +1,17 @@
 +++
 title = "Good intentions, confusing autobegin behavior"
-date = 2025-02-21
+date = 2025-08-08
 +++
 
-# Inheriting code-bases
+## Inheriting code-bases
+
 Software engineers come and go, but code remains. When coworkers leave, you inherit their code and may even need to add to it. You learn a lot about how they think and inevitably adopt their mindset in an effort to deconstruct their logic.
 
-# A puzzling error
-After inheriting an previous software engineer's service and needing to add a feature, my coworker had identified an interesting error in the unit test suite:
+After inheriting a previous software engineer's service and needing to add a feature, my coworker had identified an interesting error in the unit test suite. The error appeared intermittently during database operations when test cleanup was attempted.
+
+## A puzzling error
+
+The error:
 
 ```python
 self = <sqlalchemy.orm.session.SessionTransaction object at 0x7fa132ff1d00>
@@ -60,8 +64,29 @@ db_conn = <sqlalchemy.engine.base.Connection object at 0x7fa132ec4b20>
 >               tx.rollback()
 ```
 
-# Realistic testing
-While examining the `_test_patch_db_session` function, I encountered something I hadn't seen before:
+What was weird was that the error occurred during fixture cleanup, meaning perhaps something was happening during the test that corrupted the session state, preventing normal cleanup.
+
+## The context: realistic testing patterns
+
+While examining the `_test_patch_db_session` function, I encountered something I hadn't seen before - a patch to make database tests behave more like production code.
+
+In production, our endpoints create explicit transactions for each request:
+
+```python
+def delete_example(
+    db: DbDep,
+    id: Annotated[PositiveInt, Path()],
+):
+    with db.begin():
+        user = crud.delete_example(db)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    audit.log(f"Deleted id {id} impacting user {user}")
+```
+
+`crud.delete_example` here would just use `db.execute` without calling an explicit begin, and in the tests we test `crud.delete_example` directly. The problem is that standard test patterns put all database operations in one large transaction, while production creates separate transactions for each operation. This mismatch can hide bugs related to transaction boundaries and constraint timing.
+
+The inherited solution was complex -- patch SQLAlchemy's internal transaction management to automatically use savepoints (nested transactions) instead of the main transaction, making each operation behave like a separate request.
 
 ```python
 def _test_patch_db_session(global_tx: SessionTransaction) -> Session:
@@ -157,29 +182,83 @@ def _test_patch_db_session(global_tx: SessionTransaction) -> Session:
     return session
 ```
 
-Summarized, the (well-intentioned) purpose of this patch function was to enforce nested transactions for every transaction, isolating test runs from eachother such that a rollback in one does not effect another. Rollbacks clean up each test's commits in isolation, preventing the destruction of data in other tests, and allowing clean databases for new tests to use, circumventing the tedious work of creation and deletion of tables across test cases.
+The purpose of this patch function was to enforce nested transactions (savepoints) for every database operation, isolating test runs from each other such that a rollback in one does not affect another. Rollbacks clean up each test's commits in isolation, preventing the destruction of data in other tests, and allowing clean databases for new tests to use, circumventing the tedious work of creation and deletion of tables across test cases.
 
-In addition, in production, the functions being tested are invoked within endpoints where explicit nested transactions are created, so this patch also simulates real-world behavior when a user makes a requests to this service.
+The concept being, instead of all test operations sharing one large transaction, each operation gets its own savepoint that can succeed or fail independently, much like separate HTTP requests in production.
+
+For reference, the [SQLAlchemy Savepoint docs](https://docs.sqlalchemy.org/en/20/orm/session_transaction.html#using-savepoint) explain how nested transactions work within a larger transaction context.
+
+## Understanding SQLAlchemy's autobegin behavior
+
+To understand the failure, I needed to dive into how SQLAlchemy manages transactions automatically. Based on the [SQLAlchemy session_transaction](https://docs.sqlalchemy.org/en/20/orm/session_transaction.html#explicit-begin) docs, without explicit `Session.begin()` calls, "autobegin" behavior starts transactions where needed even when not explicitly invoked:
+
+> The Session features "autobegin" behavior, meaning that as soon as operations begin to take place, it ensures a SessionTransaction is present to track ongoing operations.
+
+Our patch modified this behavior through the `_patched__autobegin_t` function to automatically return savepoints for every transaction request, including the ones implicitly started for our crud functions. This means when SQLAlchemy internally calls `_autobegin_t()` to ensure a transaction exists, our patch intercepts that call and provides a savepoint instead of the main transaction.
+
+The key insight is that `_autobegin_t()` serves two purposes:
+1. **Normal operations**: Ensure transactions exist when database work needs to happen
+2. **Recovery operations**: Provide appropriate transaction access during error handling
+
+## The problem and learnings
+
+The problem arises when your program, mid-transaction, encounters a database error (such as a constraint violation like a duplicate primary key insert). When this happens, SQLAlchemy's session becomes [DEACTIVE](https://github.com/sqlalchemy/sqlalchemy/blob/main/lib/sqlalchemy/orm/session.py#L965-L974) and must attempt to recover.
+
+From the [Rolling Back SQLAlchemy docs](https://docs.sqlalchemy.org/en/20/orm/session_basics.html#rolling-back):
+
+> When a Session.flush() fails, typically for reasons like primary key, foreign key, or "not nullable" constraint violations, a ROLLBACK is issued automatically... However, the Session goes into a state known as "inactive" at this point, and the calling application must always call the Session.rollback() method explicitly so that the Session can go back into a usable state.
+
+Based on [What does the Session do?](https://docs.sqlalchemy.org/en/20/orm/session_basics.html#what-does-the-session-do), the [session transaction is not deactivated when rollback fails](https://github.com/sqlalchemy/sqlalchemy/issues/4050) GitHub issue, and [Using SAVEPOINT](https://docs.sqlalchemy.org/en/20/orm/session_transaction.html#using-savepoint) documentation, I learned that rollbacks on savepoints only emit "ROLLBACK TO SAVEPOINT" which only rollback the savepoints' portion of the transaction state rather than the whole transaction.
+
+The critical insight is that the Session manages the primary database connection transaction and has administrative capabilities that savepoints don't have. When catastrophic errors occur, SQLAlchemy needs these capabilities to restore session state:
+
+- **Complete object registry**: The main transaction tracks all objects loaded during the entire session
+- **Full rollback authority**: Can reset everything back to the session start  
+- **Connection management**: Direct control over database connections and connection state
+- **State restoration**: Can mark the session as healthy (ACTIVE) again after corruption
+
+Savepoints have limited scope -- they only know about objects and changes within their own checkpoint boundaries.
+
+Because our patch only hands out savepoints due to our interception of `_autobegin_t`, in the event of a catastrophic error, SQLAlchemy cannot obtain the main transaction it needs to recover properly.
+
+## The error chain
+
+The error chain is as follows:
+
+1. **Catastrophic error occurs**: `delete_user_policy` test hits a database constraint violation, connection loss, or similar error that corrupts session state
+2. **Session becomes DEACTIVE**: SQLAlchemy marks the session as unusable due to the corruption
+3. **Recovery attempt**: SQLAlchemy tries to recover by calling `_autobegin_t()` to access the main transaction  
+4. **Patch interference**: Our patch intercepts this call and gives it a savepoint instead, which lacks the privileges needed for session-level recovery
+5. **Recovery fails**: Unable to restore session state, the session remains DEACTIVE
+6. **Cleanup failure**: Test cleanup tries to rollback the main transaction, but it's in an unusable state → "InvalidRequestError: This session is inactive"
+
+The failure manifests during test cleanup, but the root cause is that SQLAlchemy couldn't access the main transaction during the recovery attempt.
+
+## The solution
+
+The solution is to update `_patched__autobegin_t` to be aware of the session state and allow SQLAlchemy to access the main transaction when recovery is needed:
 
 ```python
-def delete_example(
-    db: DbDep,
-    id: Annotated[PositiveInt, Path()],
-):
-    with db.begin():
-        user = crud.delete_example(db)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    audit.log(f"Deleted id {id} impacting user {user}")
+def _patched__autobegin_t(self, begin: bool = False) -> SessionTransaction:
+    assert not begin, "autobegin should not have been asked to start a new TX"
+    unpatched_method = Session._autobegin_t.__get__(self, Session)
+    newtx = unpatched_method(begin)
+    if newtx is global_tx:
+        # autobegin doesn't know we want to force nested transactions,
+        # so if it returns the existing global tx, force a new savepoint to be created.
+        # various operations can cause autobegin, such as just issuing queries without
+        # an explicit session.begin(), or even a session.flush() statement
+
+        # In addition, in a catastrophic error state where SQLAlchemy requires the
+        # main transaction with higher privileges to restore its state safely, we must
+        # ensure that in the case where the global_tx state is not active, that SQLAlchemy
+        # can fall back to its normal autobegin_t behavior to grab the main transaction
+        # and save itself
+        if global_tx._state == SessionTransactionState.ACTIVE:
+            newtx = _patched_begin(self)
+
+    return newtx
 ```
 
-`crud.delete_example` here would just use `db.execute` without calling an explicity begin and in the tests we test `crud.delete_example` directly.
+This change preserves the testing behavior for normal operations while providing an "escape hatch" for SQLAlchemy's recovery mechanisms. When the main transaction is healthy (`ACTIVE`), the patch continues to provide savepoints for realistic testing. When the session is corrupted (not `ACTIVE`), the patch lets SQLAlchemy access the main transaction for recovery.
 
-[SQLAlchemy Savepoint docs](https://docs.sqlalchemy.org/en/20/orm/session_transaction.html#using-savepoint)
-
-# The problem and learnings
-The problem arises when your program, mid transaction, encounters a database error (such as a constraint violation like a duplicate primary key insert). When this happens, SQLAlchemy's session becomes [DEACTIVE](https://github.com/sqlalchemy/sqlalchemy/blob/main/lib/sqlalchemy/orm/session.py#L965-L974) and must attempt to recover.
-
-Based on the SQLAlchemy [session_transaction](https://docs.sqlalchemy.org/en/20/orm/session_transaction.html#explicit-begin) docs, without explit `Session.begin()` calls, "autobegin" behavior, starts transactions where needed even when not explicitly invoked. Recall, in our patch, we modified this behavior to automatically return savepoints for every transaction made (such as the ones implicitly started for our crud functions).
-
-In [session_basics.flushing](https://docs.sqlalchemy.org/en/20/orm/session_basics.html#flushing), it's explained that when a `flush` fails, an explicit call to `Session.rollback()` is made to attempt to clear it's inactive state.
