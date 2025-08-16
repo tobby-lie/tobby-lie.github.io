@@ -3,7 +3,7 @@ title = "About Me"
 template = "section.html"
 +++
 
-Hey, I'm Tobby, I live in Denver, CO with my fiance and pug Strawberry. I'm a senior software engineer at [manifold.ai](https://www.manifold.ai/) where I work on the platform team.
+Hey, I'm Tobby, I live in Denver, CO with my wife and pug Strawberry. I'm a senior software engineer at [manifold.ai](https://www.manifold.ai/) where I work on the platform team.
 
 I'm hoping to write more, and capture some of my personal software side quests here.
 
