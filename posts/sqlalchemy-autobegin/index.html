@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Good intentions, confusing autobegin behavior - Tobby Lie</title>
+    <link rel="stylesheet" href="https://tobbylie.me/css/style.css">
+    
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="site-header">
+                <div class="logo">
+                    <a href="https:&#x2F;&#x2F;tobbylie.me">Tobby Lie</a>
+                </div>
+                <nav>
+                    <a href="https:&#x2F;&#x2F;tobbylie.me">Home</a>
+                    <a href="https://tobbylie.me/about">About</a>
+                    
+                </nav>
+            </div>
+        </header>
+        <main>
+            
+<div class="post-container">
+    <!-- Left sidebar navigation -->
+    <div class="toc-column">
+        <a href="https:&#x2F;&#x2F;tobbylie.me" class="back-link">← Back</a>
+        
+        <nav class="toc-nav">
+            
+                
+                    <div class="toc-item">
+                        <a href="https://tobbylie.me/posts/sqlalchemy-autobegin/#inheriting-code-bases">Inheriting code-bases</a>
+                    </div>
+                    
+                    
+                
+                    <div class="toc-item">
+                        <a href="https://tobbylie.me/posts/sqlalchemy-autobegin/#a-puzzling-error">A puzzling error</a>
+                    </div>
+                    
+                    
+                
+                    <div class="toc-item">
+                        <a href="https://tobbylie.me/posts/sqlalchemy-autobegin/#the-context-realistic-testing-patterns">The context: realistic testing patterns</a>
+                    </div>
+                    
+                    
+                
+                    <div class="toc-item">
+                        <a href="https://tobbylie.me/posts/sqlalchemy-autobegin/#understanding-sqlalchemy-s-autobegin-behavior">Understanding SQLAlchemy&#x27;s autobegin behavior</a>
+                    </div>
+                    
+                    
+                
+                    <div class="toc-item">
+                        <a href="https://tobbylie.me/posts/sqlalchemy-autobegin/#the-problem-and-learnings">The problem and learnings</a>
+                    </div>
+                    
+                    
+                
+                    <div class="toc-item">
+                        <a href="https://tobbylie.me/posts/sqlalchemy-autobegin/#the-error-chain">The error chain</a>
+                    </div>
+                    
+                    
+                
+                    <div class="toc-item">
+                        <a href="https://tobbylie.me/posts/sqlalchemy-autobegin/#the-solution">The solution</a>
+                    </div>
+                    
+                    
+                
+            
+        </nav>
+    </div>
+
+    <!-- Main content column -->
+    <article class="content-column">
+        <header class="post-header">
+            <h1 class="post-title">Good intentions, confusing autobegin behavior</h1>
+            <div class="post-meta">
+                August 08, 2025
+            </div>
+        </header>
+        
+        <h2 id="inheriting-code-bases">Inheriting code-bases</h2>
+<p>Software engineers come and go, but code remains. When coworkers leave, you inherit their code and may even need to add to it. You learn a lot about how they think and inevitably adopt their mindset in an effort to deconstruct their logic.</p>
+<p>After inheriting a previous software engineer's service and needing to add a feature, my coworker had identified an interesting error in the unit test suite. The error appeared intermittently during database operations when test cleanup was attempted.</p>
+<h2 id="a-puzzling-error">A puzzling error</h2>
+<p>The error:</p>
+<pre data-lang="python" style="background-color:#272822;color:#f8f8f2;" class="language-python "><code class="language-python" data-lang="python"><span>self </span><span style="color:#f92672;">= &lt;</span><span>sqlalchemy.orm.session.SessionTransaction </span><span style="font-style:italic;color:#66d9ef;">object </span><span>at </span><span style="color:#ae81ff;">0x7fa132ff1d00</span><span style="color:#f92672;">&gt;
+</span><span>operation_name </span><span style="color:#f92672;">= </span><span style="color:#e6db74;">&#39;_begin&#39;</span><span>, state </span><span style="color:#f92672;">= &lt;</span><span>SessionTransactionState.DEACTIVE: </span><span style="color:#ae81ff;">4</span><span style="color:#f92672;">&gt;
+</span><span>
+</span><span>    </span><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">_raise_for_prerequisite_state</span><span>(
+</span><span>        </span><span style="font-style:italic;color:#fd971f;">self</span><span>, </span><span style="font-style:italic;color:#fd971f;">operation_name</span><span>: </span><span style="font-style:italic;color:#66d9ef;">str</span><span>, </span><span style="font-style:italic;color:#fd971f;">state</span><span>: _StateChangeState
+</span><span>    ) -&gt; NoReturn:
+</span><span>        </span><span style="color:#f92672;">if </span><span>state </span><span style="color:#f92672;">is </span><span>SessionTransactionState.DEACTIVE:
+</span><span>            </span><span style="color:#f92672;">if </span><span>self._rollback_exception:
+</span><span>                </span><span style="color:#f92672;">raise </span><span>sa_exc.PendingRollbackError(
+</span><span>                    </span><span style="color:#e6db74;">&quot;This Session&#39;s transaction has been rolled back &quot;
+</span><span>                    </span><span style="color:#e6db74;">&quot;due to a previous exception during flush.&quot;
+</span><span>                    </span><span style="color:#e6db74;">&quot; To begin a new transaction with this Session, &quot;
+</span><span>                    </span><span style="color:#e6db74;">&quot;first issue Session.rollback().&quot;
+</span><span>                    </span><span style="font-style:italic;color:#66d9ef;">f</span><span style="color:#e6db74;">&quot; Original exception was: </span><span>{self._rollback_exception}</span><span style="color:#e6db74;">&quot;</span><span>,
+</span><span>                    </span><span style="font-style:italic;color:#fd971f;">code</span><span style="color:#f92672;">=</span><span style="color:#e6db74;">&quot;7s2a&quot;</span><span>,
+</span><span>                )
+</span><span>            </span><span style="color:#f92672;">else</span><span>:
+</span><span style="color:#f92672;">&gt;               raise </span><span>sa_exc.InvalidRequestError(
+</span><span>                    </span><span style="color:#e6db74;">&quot;This session is in &#39;inactive&#39; state, due to the &quot;
+</span><span>                    </span><span style="color:#e6db74;">&quot;SQL transaction being rolled back; no further SQL &quot;
+</span><span>                    </span><span style="color:#e6db74;">&quot;can be emitted within this transaction.&quot;
+</span><span>E                   sqlalchemy.exc.InvalidRequestError: This session </span><span style="color:#f92672;">is in </span><span style="color:#e6db74;">&#39;inactive&#39; </span><span>state, due to the SQL transaction being rolled back; no further SQL can be emitted within this transaction.
+</span></code></pre>
+<p>That exception was thrown at this point in a <code>conftest.py</code> fixture whose aim was to yield a patched database session and perform a rollback as a clean up step:</p>
+<pre data-lang="python" style="background-color:#272822;color:#f8f8f2;" class="language-python "><code class="language-python" data-lang="python"><span>db_conn </span><span style="color:#f92672;">= &lt;</span><span>sqlalchemy.engine.base.Connection </span><span style="font-style:italic;color:#66d9ef;">object </span><span>at </span><span style="color:#ae81ff;">0x7fa132ec4b20</span><span style="color:#f92672;">&gt;
+</span><span>
+</span><span>    @pytest.fixture
+</span><span>    </span><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">db_session</span><span>(</span><span style="font-style:italic;color:#fd971f;">db_conn</span><span>):
+</span><span>        session </span><span style="color:#f92672;">= </span><span>Session(
+</span><span>            </span><span style="font-style:italic;color:#fd971f;">bind</span><span style="color:#f92672;">=</span><span>db_conn,
+</span><span>            </span><span style="font-style:italic;color:#fd971f;">autocommit</span><span style="color:#f92672;">=</span><span style="color:#ae81ff;">False</span><span>,
+</span><span>            </span><span style="font-style:italic;color:#fd971f;">autoflush</span><span style="color:#f92672;">=</span><span style="color:#ae81ff;">False</span><span>,
+</span><span>            </span><span style="font-style:italic;color:#fd971f;">join_transaction_mode</span><span style="color:#f92672;">=</span><span style="color:#e6db74;">&quot;create_savepoint&quot;</span><span>,
+</span><span>        )
+</span><span>        tx </span><span style="color:#f92672;">= </span><span>session.begin()
+</span><span>    
+</span><span>        patched_session </span><span style="color:#f92672;">= </span><span>_test_patch_db_session(tx)
+</span><span>        </span><span style="color:#f92672;">yield </span><span>patched_session
+</span><span>        </span><span style="color:#f92672;">try</span><span>:
+</span><span>            </span><span style="color:#75715e;"># sanity tests for _test_patch_db_session ensuring our code
+</span><span>            </span><span style="color:#75715e;"># and this set of workarounds are behaving properly
+</span><span>            </span><span style="color:#f92672;">assert </span><span>tx.is_active, </span><span style="color:#e6db74;">&quot;Top-level test TX is no longer active&quot;
+</span><span>        </span><span style="color:#f92672;">finally</span><span>:
+</span><span>            </span><span style="color:#f92672;">if </span><span>tx.is_active:
+</span><span style="color:#f92672;">&gt;               </span><span>tx.rollback()
+</span></code></pre>
+<p>What was weird was that the error occurred during fixture cleanup, meaning perhaps something was happening during the test that corrupted the session state, preventing normal cleanup.</p>
+<h2 id="the-context-realistic-testing-patterns">The context: realistic testing patterns</h2>
+<p>While examining the <code>_test_patch_db_session</code> function, I encountered something I hadn't seen before - a patch to make database tests behave more like production code.</p>
+<p>In production, our endpoints create explicit transactions for each request:</p>
+<pre data-lang="python" style="background-color:#272822;color:#f8f8f2;" class="language-python "><code class="language-python" data-lang="python"><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">delete_example</span><span>(
+</span><span>    </span><span style="font-style:italic;color:#fd971f;">db</span><span>: DbDep,
+</span><span>    </span><span style="font-style:italic;color:#fd971f;">id</span><span>: Annotated[PositiveInt, Path()],
+</span><span>):
+</span><span>    </span><span style="color:#f92672;">with </span><span>db.begin():
+</span><span>        user </span><span style="color:#f92672;">= </span><span>crud.delete_example(db)
+</span><span>    </span><span style="color:#f92672;">if not </span><span>user:
+</span><span>        </span><span style="color:#f92672;">raise </span><span>HTTPException(</span><span style="font-style:italic;color:#fd971f;">status_code</span><span style="color:#f92672;">=</span><span>status.HTTP_404_NOT_FOUND)
+</span><span>    audit.log(</span><span style="font-style:italic;color:#66d9ef;">f</span><span style="color:#e6db74;">&quot;Deleted id </span><span>{</span><span style="color:#66d9ef;">id</span><span>}</span><span style="color:#e6db74;"> impacting user </span><span>{user}</span><span style="color:#e6db74;">&quot;</span><span>)
+</span></code></pre>
+<p><code>crud.delete_example</code> here would just use <code>db.execute</code> without calling an explicit begin, and in the tests we test <code>crud.delete_example</code> directly. The problem is that standard test patterns put all database operations in one large transaction, while production creates separate transactions for each operation. This mismatch can hide bugs related to transaction boundaries and constraint timing.</p>
+<p>The inherited solution was complex -- patch SQLAlchemy's internal transaction management to automatically use savepoints (nested transactions) instead of the main transaction, making each operation behave like a separate request.</p>
+<pre data-lang="python" style="background-color:#272822;color:#f8f8f2;" class="language-python "><code class="language-python" data-lang="python"><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">_test_patch_db_session</span><span>(</span><span style="font-style:italic;color:#fd971f;">global_tx</span><span>: SessionTransaction) -&gt; Session:
+</span><span>    </span><span style="color:#75715e;">&quot;&quot;&quot;
+</span><span style="color:#75715e;">    Patches autobegin, begin, commit, and rollback behavior of the session
+</span><span style="color:#75715e;">    the given top-level (test-function-scope) transaction belongs to
+</span><span style="color:#75715e;">    such that all activity takes place in savepoints (nested transactions), simulating
+</span><span style="color:#75715e;">    per-request session behavior that would take place in production.
+</span><span style="color:#75715e;">    Also, useful as per-test-function session behavior to ensure the db state
+</span><span style="color:#75715e;">    is clean between tests.
+</span><span style="color:#75715e;">
+</span><span style="color:#75715e;">    For safety, this implementation prevents the provided global transaction from
+</span><span style="color:#75715e;">    being committed or rolled back by tests.
+</span><span style="color:#75715e;">
+</span><span style="color:#75715e;">    For parity: The default SQLAlchemy behavior is to automatically call commit() on top-level
+</span><span style="color:#75715e;">    transactions only. Since we&#39;re simulating top-level transactions using savepoints,
+</span><span style="color:#75715e;">    the patch session will attempt to call commit() during close() provided the current
+</span><span style="color:#75715e;">    savepoint is a direct child of the global transaction. That is, commit() would *not*
+</span><span style="color:#75715e;">    automatically be called for a deeply nested savepoint.
+</span><span style="color:#75715e;">
+</span><span style="color:#75715e;">    Returns: the provided transaction&#39;s Session but with rollback() and commit() modified internally
+</span><span style="color:#75715e;">    &quot;&quot;&quot;
+</span><span>    session: Session </span><span style="color:#f92672;">= </span><span>global_tx.session
+</span><span>
+</span><span>    </span><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">_patched_begin</span><span>(</span><span style="font-style:italic;color:#fd971f;">self</span><span>, </span><span style="font-style:italic;color:#fd971f;">nested</span><span>: </span><span style="font-style:italic;color:#66d9ef;">bool </span><span style="color:#f92672;">= </span><span style="color:#ae81ff;">False</span><span>) -&gt; SessionTransaction:
+</span><span>        unpatched_method </span><span style="color:#f92672;">= </span><span>Session.begin.</span><span style="color:#66d9ef;">__get__</span><span>(self, Session)
+</span><span>        newtx </span><span style="color:#f92672;">= </span><span>unpatched_method(</span><span style="color:#ae81ff;">True</span><span>)  </span><span style="color:#75715e;"># always nested=True for testing
+</span><span>        </span><span style="color:#f92672;">return </span><span>newtx
+</span><span>
+</span><span>    </span><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">_patched__autobegin_t</span><span>(</span><span style="font-style:italic;color:#fd971f;">self</span><span>, </span><span style="font-style:italic;color:#fd971f;">begin</span><span>: </span><span style="font-style:italic;color:#66d9ef;">bool </span><span style="color:#f92672;">= </span><span style="color:#ae81ff;">False</span><span>) -&gt; SessionTransaction:
+</span><span>        </span><span style="color:#f92672;">assert not </span><span>begin, </span><span style="color:#e6db74;">&quot;autobegin should not have been asked to start a new TX&quot;
+</span><span>        unpatched_method </span><span style="color:#f92672;">= </span><span>Session._autobegin_t.</span><span style="color:#66d9ef;">__get__</span><span>(self, Session)
+</span><span>        newtx </span><span style="color:#f92672;">= </span><span>unpatched_method(begin)
+</span><span>        </span><span style="color:#f92672;">if </span><span>newtx </span><span style="color:#f92672;">is </span><span>global_tx:
+</span><span>            </span><span style="color:#75715e;"># autobegin doesn&#39;t know we want to force nested transactions,
+</span><span>            </span><span style="color:#75715e;"># so if it returns the existing global tx, force a new savepoint to be created.
+</span><span>            </span><span style="color:#75715e;"># various operations can cause autobegin, such as just issuing queries without
+</span><span>            </span><span style="color:#75715e;"># an explicit session.begin(), or even a session.flush() statement
+</span><span>            newtx </span><span style="color:#f92672;">= </span><span>_patched_begin(self)
+</span><span>        </span><span style="color:#f92672;">return </span><span>newtx
+</span><span>
+</span><span>    </span><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">_patched_rollback</span><span>(</span><span style="font-style:italic;color:#fd971f;">self</span><span>) -&gt; </span><span style="color:#ae81ff;">None</span><span>:
+</span><span>        current </span><span style="color:#f92672;">= </span><span>self._transaction
+</span><span>        </span><span style="color:#f92672;">assert </span><span>current.nested, </span><span style="color:#e6db74;">&quot;should not be rolling back top-level transaction&quot;
+</span><span>        current.rollback()
+</span><span>
+</span><span>    </span><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">_patched_commit</span><span>(</span><span style="font-style:italic;color:#fd971f;">self</span><span>) -&gt; </span><span style="color:#ae81ff;">None</span><span>:
+</span><span>        current </span><span style="color:#f92672;">= </span><span>self._transaction
+</span><span>        </span><span style="color:#f92672;">assert </span><span>current.nested, </span><span style="color:#e6db74;">&quot;should not be committing top-level transaction&quot;
+</span><span>        current.commit()
+</span><span>        </span><span style="color:#75715e;"># sqlalchemy&#39;s sessionmaker by default sets &#39;expire_on_commit=True&#39;
+</span><span>        </span><span style="color:#75715e;"># so emulate that here
+</span><span>        session.expire_all()
+</span><span>
+</span><span>    </span><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">_patched_close</span><span>(</span><span style="font-style:italic;color:#fd971f;">self</span><span>) -&gt; </span><span style="color:#ae81ff;">None</span><span>:
+</span><span>        current </span><span style="color:#f92672;">= </span><span>self._transaction
+</span><span>        </span><span style="color:#f92672;">if </span><span>current.nested:
+</span><span>            </span><span style="color:#75715e;"># SQLAlchemy&#39;s behavior when calling close() on a nested transaction
+</span><span>            </span><span style="color:#75715e;"># is different from close on the top-level. For a nested transaction,
+</span><span>            </span><span style="color:#75715e;"># close() just discards the changes, but for a top-level transaction
+</span><span>            </span><span style="color:#75715e;"># close() will attempt to commit() any uncommitted changes, else rollback().
+</span><span>            </span><span style="color:#75715e;">#
+</span><span>            </span><span style="color:#75715e;"># For parity, if we&#39;re in a nested transaction that is an immediate child
+</span><span>            </span><span style="color:#75715e;"># of the top-level transaction, and it is still active, attempt to commit
+</span><span>            </span><span style="color:#75715e;"># (or rollback if it cannot be committed) the savepoint before closing
+</span><span>            </span><span style="color:#f92672;">try</span><span>:
+</span><span>                </span><span style="color:#f92672;">if </span><span>current._transaction_is_active </span><span style="color:#f92672;">and </span><span>current._parent </span><span style="color:#f92672;">is </span><span>global_tx:
+</span><span>                    </span><span style="color:#f92672;">try</span><span>:
+</span><span>                        current.commit()
+</span><span>                    </span><span style="color:#f92672;">except </span><span style="font-style:italic;color:#66d9ef;">Exception</span><span>:
+</span><span>                        </span><span style="color:#f92672;">if </span><span>current._rollback_can_be_called():
+</span><span>                            current.rollback()
+</span><span>                current.close()
+</span><span>            </span><span style="color:#f92672;">finally</span><span>:
+</span><span>                </span><span style="color:#75715e;"># everything should be &#39;closed&#39;; ensure the state is reset
+</span><span>                session.expire_all()
+</span><span>        </span><span style="color:#75715e;"># it is possible to call close() on the top-level transaction,
+</span><span>        </span><span style="color:#75715e;"># especially in cases where the only operation was an auto-begun
+</span><span>        </span><span style="color:#75715e;"># read or if there were no queries issued at all
+</span><span>        </span><span style="color:#f92672;">else</span><span>:
+</span><span>            </span><span style="color:#75715e;"># everything should be &#39;closed&#39;; ensure the state is reset
+</span><span>            session.expire_all()
+</span><span>            </span><span style="color:#f92672;">assert </span><span>(
+</span><span>                current._state </span><span style="color:#f92672;">== </span><span>SessionTransactionState.ACTIVE
+</span><span>            ), </span><span style="font-style:italic;color:#66d9ef;">f</span><span style="color:#e6db74;">&quot;attempting to close the global transaction in non-ACTIVE state </span><span>{current._state}</span><span style="color:#e6db74;">&quot;
+</span><span>
+</span><span>    session._autobegin_t </span><span style="color:#f92672;">= </span><span>_patched__autobegin_t.</span><span style="color:#66d9ef;">__get__</span><span>(session, Session)
+</span><span>    session.begin </span><span style="color:#f92672;">= </span><span>_patched_begin.</span><span style="color:#66d9ef;">__get__</span><span>(session, Session)
+</span><span>    session.commit </span><span style="color:#f92672;">= </span><span>_patched_commit.</span><span style="color:#66d9ef;">__get__</span><span>(session, Session)
+</span><span>    session.rollback </span><span style="color:#f92672;">= </span><span>_patched_rollback.</span><span style="color:#66d9ef;">__get__</span><span>(session, Session)
+</span><span>    session.close </span><span style="color:#f92672;">= </span><span>_patched_close.</span><span style="color:#66d9ef;">__get__</span><span>(session, Session)
+</span><span>
+</span><span>    </span><span style="color:#f92672;">return </span><span>session
+</span></code></pre>
+<p>The purpose of this patch function was to enforce nested transactions (savepoints) for every database operation, isolating test runs from each other such that a rollback in one does not affect another. Rollbacks clean up each test's commits in isolation, preventing the destruction of data in other tests, and allowing clean databases for new tests to use, circumventing the tedious work of creation and deletion of tables across test cases.</p>
+<p>The concept being, instead of all test operations sharing one large transaction, each operation gets its own savepoint that can succeed or fail independently, much like separate HTTP requests in production.</p>
+<p>For reference, the <a rel="noopener" target="_blank" href="https://docs.sqlalchemy.org/en/20/orm/session_transaction.html#using-savepoint">SQLAlchemy Savepoint docs</a> explain how nested transactions work within a larger transaction context.</p>
+<h2 id="understanding-sqlalchemy-s-autobegin-behavior">Understanding SQLAlchemy's autobegin behavior</h2>
+<p>To understand the failure, I needed to dive into how SQLAlchemy manages transactions automatically. Based on the <a rel="noopener" target="_blank" href="https://docs.sqlalchemy.org/en/20/orm/session_transaction.html#explicit-begin">SQLAlchemy session_transaction</a> docs, without explicit <code>Session.begin()</code> calls, "autobegin" behavior starts transactions where needed even when not explicitly invoked:</p>
+<blockquote>
+<p>The Session features "autobegin" behavior, meaning that as soon as operations begin to take place, it ensures a SessionTransaction is present to track ongoing operations.</p>
+</blockquote>
+<p>Our patch modified this behavior through the <code>_patched__autobegin_t</code> function to automatically return savepoints for every transaction request, including the ones implicitly started for our crud functions. This means when SQLAlchemy internally calls <code>_autobegin_t()</code> to ensure a transaction exists, our patch intercepts that call and provides a savepoint instead of the main transaction.</p>
+<p>The key insight is that <code>_autobegin_t()</code> serves two purposes:</p>
+<ol>
+<li><strong>Normal operations</strong>: Ensure transactions exist when database work needs to happen</li>
+<li><strong>Recovery operations</strong>: Provide appropriate transaction access during error handling</li>
+</ol>
+<h2 id="the-problem-and-learnings">The problem and learnings</h2>
+<p>The problem arises when your program, mid-transaction, encounters a database error (such as a constraint violation like a duplicate primary key insert). When this happens, SQLAlchemy's session becomes <a rel="noopener" target="_blank" href="https://github.com/sqlalchemy/sqlalchemy/blob/main/lib/sqlalchemy/orm/session.py#L965-L974">DEACTIVE</a> and must attempt to recover.</p>
+<p>From the <a rel="noopener" target="_blank" href="https://docs.sqlalchemy.org/en/20/orm/session_basics.html#rolling-back">Rolling Back SQLAlchemy docs</a>:</p>
+<blockquote>
+<p>When a Session.flush() fails, typically for reasons like primary key, foreign key, or "not nullable" constraint violations, a ROLLBACK is issued automatically... However, the Session goes into a state known as "inactive" at this point, and the calling application must always call the Session.rollback() method explicitly so that the Session can go back into a usable state.</p>
+</blockquote>
+<p>Based on <a rel="noopener" target="_blank" href="https://docs.sqlalchemy.org/en/20/orm/session_basics.html#what-does-the-session-do">What does the Session do?</a>, the <a rel="noopener" target="_blank" href="https://github.com/sqlalchemy/sqlalchemy/issues/4050">session transaction is not deactivated when rollback fails</a> GitHub issue, and <a rel="noopener" target="_blank" href="https://docs.sqlalchemy.org/en/20/orm/session_transaction.html#using-savepoint">Using SAVEPOINT</a> documentation, I learned that rollbacks on savepoints only emit "ROLLBACK TO SAVEPOINT" which only rollback the savepoints' portion of the transaction state rather than the whole transaction.</p>
+<p>The critical insight is that the Session manages the primary database connection transaction and has administrative capabilities that savepoints don't have. When catastrophic errors occur, SQLAlchemy needs these capabilities to restore session state:</p>
+<ul>
+<li><strong>Complete object registry</strong>: The main transaction tracks all objects loaded during the entire session</li>
+<li><strong>Full rollback authority</strong>: Can reset everything back to the session start</li>
+<li><strong>Connection management</strong>: Direct control over database connections and connection state</li>
+<li><strong>State restoration</strong>: Can mark the session as healthy (ACTIVE) again after corruption</li>
+</ul>
+<p>Savepoints have limited scope -- they only know about objects and changes within their own checkpoint boundaries.</p>
+<p>Because our patch only hands out savepoints due to our interception of <code>_autobegin_t</code>, in the event of a catastrophic error, SQLAlchemy cannot obtain the main transaction it needs to recover properly.</p>
+<h2 id="the-error-chain">The error chain</h2>
+<p>The error chain is as follows:</p>
+<ol>
+<li><strong>Catastrophic error occurs</strong>: <code>delete_user_policy</code> test hits a database constraint violation, connection loss, or similar error that corrupts session state</li>
+<li><strong>Session becomes DEACTIVE</strong>: SQLAlchemy marks the session as unusable due to the corruption</li>
+<li><strong>Recovery attempt</strong>: SQLAlchemy tries to recover by calling <code>_autobegin_t()</code> to access the main transaction</li>
+<li><strong>Patch interference</strong>: Our patch intercepts this call and gives it a savepoint instead, which lacks the privileges needed for session-level recovery</li>
+<li><strong>Recovery fails</strong>: Unable to restore session state, the session remains DEACTIVE</li>
+<li><strong>Cleanup failure</strong>: Test cleanup tries to rollback the main transaction, but it's in an unusable state → "InvalidRequestError: This session is inactive"</li>
+</ol>
+<p>The failure manifests during test cleanup, but the root cause is that SQLAlchemy couldn't access the main transaction during the recovery attempt.</p>
+<h2 id="the-solution">The solution</h2>
+<p>The solution is to update <code>_patched__autobegin_t</code> to be aware of the session state and allow SQLAlchemy to access the main transaction when recovery is needed:</p>
+<pre data-lang="python" style="background-color:#272822;color:#f8f8f2;" class="language-python "><code class="language-python" data-lang="python"><span style="font-style:italic;color:#f92672;">def </span><span style="color:#a6e22e;">_patched__autobegin_t</span><span>(</span><span style="font-style:italic;color:#fd971f;">self</span><span>, </span><span style="font-style:italic;color:#fd971f;">begin</span><span>: </span><span style="font-style:italic;color:#66d9ef;">bool </span><span style="color:#f92672;">= </span><span style="color:#ae81ff;">False</span><span>) -&gt; SessionTransaction:
+</span><span>    </span><span style="color:#f92672;">assert not </span><span>begin, </span><span style="color:#e6db74;">&quot;autobegin should not have been asked to start a new TX&quot;
+</span><span>    unpatched_method </span><span style="color:#f92672;">= </span><span>Session._autobegin_t.</span><span style="color:#66d9ef;">__get__</span><span>(self, Session)
+</span><span>    newtx </span><span style="color:#f92672;">= </span><span>unpatched_method(begin)
+</span><span>    </span><span style="color:#f92672;">if </span><span>newtx </span><span style="color:#f92672;">is </span><span>global_tx:
+</span><span>        </span><span style="color:#75715e;"># autobegin doesn&#39;t know we want to force nested transactions,
+</span><span>        </span><span style="color:#75715e;"># so if it returns the existing global tx, force a new savepoint to be created.
+</span><span>        </span><span style="color:#75715e;"># various operations can cause autobegin, such as just issuing queries without
+</span><span>        </span><span style="color:#75715e;"># an explicit session.begin(), or even a session.flush() statement
+</span><span>
+</span><span>        </span><span style="color:#75715e;"># In addition, in a catastrophic error state where SQLAlchemy requires the
+</span><span>        </span><span style="color:#75715e;"># main transaction with higher privileges to restore its state safely, we must
+</span><span>        </span><span style="color:#75715e;"># ensure that in the case where the global_tx state is not active, that SQLAlchemy
+</span><span>        </span><span style="color:#75715e;"># can fall back to its normal autobegin_t behavior to grab the main transaction
+</span><span>        </span><span style="color:#75715e;"># and save itself
+</span><span>        </span><span style="color:#f92672;">if </span><span>global_tx._state </span><span style="color:#f92672;">== </span><span>SessionTransactionState.ACTIVE:
+</span><span>            newtx </span><span style="color:#f92672;">= </span><span>_patched_begin(self)
+</span><span>
+</span><span>    </span><span style="color:#f92672;">return </span><span>newtx
+</span></code></pre>
+<p>This change preserves the testing behavior for normal operations while providing an "escape hatch" for SQLAlchemy's recovery mechanisms. When the main transaction is healthy (<code>ACTIVE</code>), the patch continues to provide savepoints for realistic testing. When the session is corrupted (not <code>ACTIVE</code>), the patch lets SQLAlchemy access the main transaction for recovery.</p>
+
+        
+        <div class="post-footer">
+            <div class="read-time">6 min read</div>
+        </div>
+    </article>
+    
+    <!-- Right sidebar - Currently empty, but matches the structure -->
+    <div class="right-column">
+        <!-- Can add something here later if desired -->
+    </div>
+</div>
+
+        </main>
+    </div>
+</body>
+</html>
