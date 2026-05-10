@@ -108,13 +108,12 @@ nav a:hover {
   text-decoration: underline;
 }
 
-/* Three-column layout for posts */
+/* Two-column layout for posts */
 .post-container {
   display: grid;
-  grid-template-columns: 200px minmax(0, 800px) 1fr;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
+  grid-template-columns: 260px 1fr;
+  max-width: 1200px;
+  margin: 0;
   padding: 0 20px;
 }
 
@@ -173,7 +172,6 @@ nav a:hover {
 /* Main content column */
 .content-column {
   min-width: 0;
-  max-width: 800px;
 }
 
 .content-column h1.post-title {
@@ -206,11 +204,6 @@ nav a:hover {
   font-size: 14px;
 }
 
-/* Right column - currently empty */
-.right-column {
-  /* You can add content here in the future if needed */
-}
-
 /* Code styling */
 pre {
   background-color: var(--code-bg);
@@ -231,19 +224,6 @@ code {
 pre code {
   padding: 0;
   background-color: transparent;
-}
-
-/* Footer */
-footer {
-  margin-top: 4rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border-color);
-  text-align: center;
-  font-size: 0.9rem;
-  color: var(--meta-color);
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 /* Pagination */
@@ -285,15 +265,7 @@ footer {
   .toc-column {
     display: none;
   }
-  
-  .toc-item {
-    margin-bottom: 0;
-  }
-  
-  .sub-item, .sub-sub-item {
-    margin-left: 0;
-  }
-  
+
   .content-column h1.post-title {
     margin-top: 20px;
   }
@@ -320,4 +292,16 @@ footer {
   display: block;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Section pages (e.g., About) */
+.section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--header-color);
 }
