@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Work - {{ config.title }}{% endblock %}
+
+{% block content %}
+{% set resume = load_data(path="data/resume.toml") %}
+
+<a href="{{ config.base_url }}" class="return-home">&#8629; return home</a>
+
+<article class="section">
+    <h1 class="section-title">Work</h1>
+    <a class="resume-download" href="{{ get_url(path='resume.pdf') }}">download the pdf</a>
+
+    {% for company in resume.work %}
+        <div class="resume-company">
+            {% if company.url %}<a href="{{ company.url }}" target="_blank" rel="noopener">{{ company.company }}</a>{% else %}{{ company.company }}{% endif %}
+            &middot; {{ company.location }}
+        </div>
+
+        {% for role in company.roles %}
+            <div class="resume-row">
+                <span class="role">{{ role.title }}</span>
+                <span class="leader"></span>
+                <span class="dates">{{ role.start }} &ndash; {{ role.end }}</span>
+            </div>
+            <ul class="resume-bullets">
+                {% for bullet in role.bullets %}
+                    <li>{{ bullet }}</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% endfor %}
+</article>
+{% endblock %}

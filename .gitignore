@@ -8,6 +8,7 @@ public/
 *.swp
 *.swo
 *~
+.DS_Store
 
 # Environment variables
 .env
@@ -23,3 +24,6 @@ public/
 target/
 **/*.rs.bk
 Cargo.lock
+
+# Brainstorming companion mockups
+.superpowers/

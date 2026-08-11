@@ -18,4 +18,15 @@ external_links_target_blank = true
 theme = "monokai"
 
 [extra]
-# Put all your custom variables here
+role = "Staff Software Engineer"
+github = "https://github.com/tobby-lie"
+linkedin = "https://www.linkedin.com/in/tobby-lie/"
+email = "tobbylie@gmail.com"
+into = [
+  "Meandering about antique malls looking at vintage stuff",
+  "Aimlessly scrolling Facebook marketplace, driving to new undiscovered parts of CO for finds",
+  "Amateur bird-watching with my wife",
+  "Watching movies, mostly horror (the good and the bad)",
+  "Reading and often not finishing books, mostly on tech",
+  "Thinking about and often not starting side projects",
+]

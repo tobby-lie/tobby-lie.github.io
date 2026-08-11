@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ config.title }}{% endblock %}
+
+{% block content %}
+{% set resume = load_data(path="data/resume.toml") %}
+
+<div class="home-header">
+    <h1 class="home-name">{{ config.title }}</h1>
+    <p class="home-title">{{ config.extra.role }}</p>
+</div>
+
+<div class="home-intro">
+    {{ section.content | safe }}
+    <p class="home-tagline"><a href="{{ get_url(path='thoughts') }}">I sometimes have thoughts on things &rarr;</a></p>
+</div>
+
+<div class="resume-section">
+    <div class="resume-section-header">
+        <span>Work</span>
+        <a class="more-link" href="{{ get_url(path='work') }}">More &#8599;</a>
+    </div>
+
+    {% for company in resume.work %}
+        {% if company.roles | length > 1 %}
+            <div class="resume-company">
+                {% if company.url %}<a href="{{ company.url }}" target="_blank" rel="noopener">{{ company.company }}</a>{% else %}{{ company.company }}{% endif %}
+            </div>
+            {% for role in company.roles %}
+                <div class="resume-row">
+                    <span class="role">{{ role.title }}</span>
+                    <span class="leader"></span>
+                    <span class="dates">{{ role.start }} &ndash; {{ role.end }}</span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="resume-row standalone">
+                <span class="role">
+                    {{ company.roles.0.title }} &middot;
+                    {% if company.url %}<a href="{{ company.url }}" target="_blank" rel="noopener">{{ company.company }}</a>{% else %}{{ company.company }}{% endif %}
+                </span>
+                <span class="leader"></span>
+                <span class="dates">{{ company.start }} &ndash; {{ company.end }}</span>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div class="resume-section">
+    <div class="resume-section-header">
+        <span>Education</span>
+    </div>
+
+    {% for edu in resume.education %}
+        <div class="resume-row">
+            <span class="role">
+                {{ edu.degree }} &middot;
+                {% if edu.url %}<a href="{{ edu.url }}" target="_blank" rel="noopener">{{ edu.school }}</a>{% else %}{{ edu.school }}{% endif %}
+            </span>
+            <span class="leader"></span>
+            <span class="dates">{{ edu.date }}</span>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

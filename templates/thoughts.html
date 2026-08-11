@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Thoughts - {{ config.title }}{% endblock %}
+
+{% block content %}
+<a href="{{ config.base_url }}" class="return-home">&#8629; return home</a>
+
+<article class="section">
+    <h1 class="section-title">Thoughts</h1>
+
+    <div class="thoughts-list">
+        {% for page in paginator.pages %}
+            <div class="thoughts-row">
+                <a href="{{ page.permalink }}">{{ page.title }}</a>
+                <span class="leader"></span>
+                <span class="dates">{{ page.date | date(format="%B %d, %Y") }}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="pagination">
+        {% if paginator.previous %}
+            <a href="{{ paginator.previous }}">&larr; Newer</a>
+        {% else %}
+            <span></span>
+        {% endif %}
+        {% if paginator.next %}
+            <a href="{{ paginator.next }}">Older &rarr;</a>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}

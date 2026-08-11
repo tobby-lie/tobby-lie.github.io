@@ -6,7 +6,7 @@
 <div class="post-container">
     <!-- Left sidebar navigation -->
     <div class="toc-column">
-        <a href="{{ config.base_url }}" class="back-link">← Back</a>
+        <a href="{{ get_url(path='thoughts') }}" class="return-home">&#8629; back to thoughts</a>
 
         {% if page.toc %}
         <nav class="toc-nav">
@@ -49,4 +49,8 @@
     
 
 </div>
+{% endblock %}
+
+{% block extra_body %}
+<script src="{{ get_url(path='js/toc.js') }}" defer></script>
 {% endblock %}
