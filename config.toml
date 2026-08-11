@@ -1,7 +1,7 @@
 # The URL the site will be built for
 base_url = "https://tobbylie.me"
 title = "Tobby Lie"
-description = "Personal blog"
+description = "Staff software engineer at Manifold. Resume, work history, and occasional writing."
 
 # theme = "minimal-blog"
 
@@ -15,7 +15,7 @@ render_emoji = true
 external_links_target_blank = true
 
 [markdown.highlighting]
-theme = "monokai"
+theme = "github-dark"
 
 [extra]
 role = "Staff Software Engineer"

@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (link) link.classList.add('active');
   };
 
+  tocLinks.forEach((link) => {
+    link.addEventListener('click', () => setActive(link));
+  });
+
   const observer = new IntersectionObserver(
     (entries) => {
       const visible = entries.filter((entry) => entry.isIntersecting);
@@ -26,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const match = tracked.find((t) => t.heading === topMost.target);
       if (match) setActive(match.link);
     },
-    { rootMargin: '-80px 0px -70% 0px', threshold: 0 }
+    { rootMargin: '0px 0px -70% 0px', threshold: 0 }
   );
 
   tracked.forEach(({ heading }) => observer.observe(heading));

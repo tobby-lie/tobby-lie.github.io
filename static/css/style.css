@@ -311,13 +311,6 @@ a:hover {
   font-size: 1.4rem;
 }
 
-.post-footer {
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-color);
-  color: var(--meta-color);
-  font-size: 14px;
-}
 
 /* Code styling */
 pre {
