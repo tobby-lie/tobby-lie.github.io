@@ -19,6 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
     link.addEventListener('click', () => setActive(link));
   });
 
+  tracked.forEach(({ link, heading }) => {
+    const headingAnchor = heading.querySelector('a');
+    if (headingAnchor) {
+      headingAnchor.addEventListener('click', () => setActive(link));
+    }
+  });
+
   const observer = new IntersectionObserver(
     (entries) => {
       const visible = entries.filter((entry) => entry.isIntersecting);
