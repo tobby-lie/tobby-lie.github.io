@@ -13,6 +13,7 @@ build_search_index = false
 [markdown]
 render_emoji = true
 external_links_target_blank = true
+insert_anchor_links = "heading"
 
 [markdown.highlighting]
 theme = "github-dark"
