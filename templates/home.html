@@ -36,7 +36,7 @@
         {% else %}
             <div class="resume-row standalone">
                 <span class="role">
-                    {{ company.roles.0.title }} &middot;
+                    {{ company.roles[0].title }} &middot;
                     {% if company.url %}<a href="{{ company.url }}" target="_blank" rel="noopener">{{ company.company }}</a>{% else %}{{ company.company }}{% endif %}
                 </span>
                 <span class="leader"></span>
