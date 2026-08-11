@@ -4,28 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ config.title }}{% endblock %}</title>
+    <meta name="description" content="{% block description %}{{ config.description }}{% endblock %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ get_url(path='favicon-32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ get_url(path='favicon-16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ get_url(path='apple-touch-icon.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ get_url(path='css/style.css') }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="site-header">
-                <div class="logo">
-                    <a href="{{ config.base_url }}">{{ config.title }}</a>
-                </div>
-                <nav>
-                    <a href="{{ config.base_url }}">Home</a>
-                    <a href="{{ get_url(path='about') }}">About</a>
-                    {% if config.extra.github %}
-                        <a href="{{ config.extra.github }}">GitHub</a>
-                    {% endif %}
-                </nav>
-            </div>
-        </header>
         <main>
             {% block content %}{% endblock %}
         </main>
     </div>
+    {% block extra_body %}{% endblock %}
 </body>
 </html>

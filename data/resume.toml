@@ -1,0 +1,82 @@
+[[work]]
+company = "Manifold"
+url = "https://www.manifold.ai/"
+location = "Remote, USA"
+start = "Oct 2021"
+end = "Present"
+
+[[work.roles]]
+title = "Senior & Staff Software Engineer"
+start = "Sep 2023"
+end = "Present"
+bullets = [
+  "Designed the platform's first public API and the org-wide standard three services now publish against",
+  "Shipped an MCP server exposing platform tools to LLM agents, with an OAuth broker and encrypted token store",
+  "Architected infrastructure enabling customer-owned AWS accounts as isolated/integrated compute planes",
+  "Engineered the access control service governing Snowflake, AWS IAM, and Auth0 across 17 customer environments, with batched asynchronous permission propagation and dead-letter redrive",
+  "Delivered cloud-cost attribution from design to production in 3 weeks, tagging provisioned resources to funding sources",
+  "Decomposed a monolithic Terraform state into 7 dependency-ordered layers, migrated live with no downtime",
+  "Led major-version migrations of the metadata catalog and identity tooling across all customer environments, de-risked in parallel environments before production cutover",
+  "Shipped a cross-platform CLI and shared API client libraries, retiring hand-rolled HTTP calls across 8 services",
+  "Rolled out a feature-flag and progressive-rollout system (Flipt) for gradual releases across services",
+  "Lead a 3-engineer pod owning the public API and agent-tooling roadmap",
+  "Co-authored the platform engineering technical interview and the code and design review standards the team follows",
+]
+
+[[work.roles]]
+title = "Software Engineer"
+start = "May 2022"
+end = "Sep 2023"
+bullets = [
+  "Built a serverless patient-records ingestion pipeline on AWS Lambda and SQS",
+  "Launched cohort exploration and document search products backed by OpenSearch and a normalized PostgreSQL schema",
+]
+
+[[work.roles]]
+title = "Machine Learning Engineer"
+start = "Oct 2021"
+end = "May 2022"
+bullets = [
+  "Built a production-grade medical-notes NLP summarization system",
+  "Designed an ML training pipeline producing multiple model variants daily on large medical datasets",
+  "Led technical discovery for enterprise AI, scoping a medical-device chatbot engagement",
+]
+
+[[work]]
+company = "University of Colorado Denver – BDLab"
+url = "https://cse.ucdenver.edu/~bdlab/"
+location = "Denver, CO"
+start = "Nov 2019"
+end = "May 2022"
+
+[[work.roles]]
+title = "Research Assistant"
+start = "Nov 2019"
+end = "May 2022"
+bullets = [
+  "Developed a real-time ML system monitoring 1,000+ infrastructure points with 90% detection accuracy",
+  "Built physics-guided neural networks improving structural defect prediction by 40% over baseline",
+  "Secured a $750K grant by developing scalable ML infrastructure enabling team expansion",
+  "Published novel ML monitoring techniques at TriDurLE Symposium and deployed to CDOT production",
+]
+
+[[education]]
+school = "University of Colorado Denver"
+url = "https://www.ucdenver.edu/"
+location = "Denver, CO"
+degree = "Master of Science in Computer Science"
+date = "May 2022"
+
+[[education]]
+school = "University of Colorado Denver"
+url = "https://www.ucdenver.edu/"
+location = "Denver, CO"
+degree = "Bachelor of Science in Computer Science"
+date = "May 2021"
+
+[skills]
+Languages = ["Python", "TypeScript", "Go", "SQL", "Bash", "C++"]
+"Cloud & Infrastructure" = ["AWS (ECS, EC2, Lambda, ALB, WAF, IAM, CloudWatch, SQS, S3, RDS, DynamoDB, ElastiCache, Route 53, SageMaker, OpenSearch, API Gateway)", "Terraform", "Docker", "Packer", "GitHub Actions"]
+"Backend Development" = ["FastAPI", "Pydantic", "SQLAlchemy", "Auth0", "OAuth 2.0", "Model Context Protocol", "Flipt"]
+"Data Engineering" = ["Snowflake", "PostgreSQL", "dbt", "Alembic", "Airflow", "OpenMetadata"]
+"ML & AI" = ["PyTorch", "RAG", "LLMs", "Anthropic & OpenAI APIs"]

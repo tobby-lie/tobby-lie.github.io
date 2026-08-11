@@ -1,6 +1,5 @@
 +++
-sort_by = "date"
-template = "index.html"
-page_template = "page.html"
-paginate_by = 5
+template = "home.html"
 +++
+
+Staff software engineer at [manifold.ai](https://www.manifold.ai/), working on Core Services. [more about me →](/about/)

@@ -18,7 +18,4 @@ Output directory is `public`, declared in `wrangler.toml`. Custom domain is `tob
 
 `.github/workflows/site-ci.yaml` runs a Zola build check on every PR.
 
-## TODO
-
-- Add page sidebar table of contents
-- Add tab logo/favicon
+Note: CI builds with whatever Zola version `shalzz/zola-deploy-action@master` currently bundles (not pinned to a specific release), which can differ from your local `zola` install. A local `zola build` passing doesn't guarantee CI will — Tera template syntax has changed across Zola versions before (e.g. array indexing).
