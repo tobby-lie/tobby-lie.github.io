@@ -8,9 +8,9 @@ Personal site, built with Zola.
 
 ## Deployment
 
-Cloudflare Pages builds and deploys straight from master, no separate build branch. Build command:
+Cloudflare Pages builds and deploys straight from main, no separate build branch. Build command:
 
-    if [ "$CF_PAGES_BRANCH" = "master" ]; then zola build; else zola build --base-url $CF_PAGES_URL; fi
+    if [ "$CF_PAGES_BRANCH" = "main" ]; then zola build; else zola build --base-url $CF_PAGES_URL; fi
 
 Output directory is `public`, declared in `wrangler.toml`. Custom domain is `tobbylie.me`.
 
